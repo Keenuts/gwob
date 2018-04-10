@@ -209,6 +209,28 @@ func (o *Obj) VertexCoordinates(stride int) (float32, float32, float32) {
 	return o.Coord[f], o.Coord[f+1], o.Coord[f+2]
 }
 
+func (o *Obj) NormCoordinates(stride int) (float32, float32, float32) {
+    if !o.NormCoordFound {
+        panic("NormCoordinates called on a mesh without explicit normals")
+    }
+
+	offset := o.StrideOffsetNormal / 4
+	floatsPerStride := o.StrideSize / 4
+	f := offset + stride * floatsPerStride
+	return o.Coord[f], o.Coord[f+1], o.Coord[f+2]
+}
+
+func (o *Obj) TextCoordinates(stride int) (float32, float32) {
+    if !o.TextCoordFound {
+        panic("TextCoordinates called on a mesh without explicit UVs")
+    }
+
+	offset := o.StrideOffsetTexture / 4
+	floatsPerStride := o.StrideSize / 4
+	f := offset + stride * floatsPerStride
+	return o.Coord[f], o.Coord[f+1]
+}
+
 //type lineParser func(p *objParser, o *Obj, rawLine string) (error, bool)
 
 func NewObjFromVertex(objName string, coord []float32, indices []int) (*Obj, error) {
