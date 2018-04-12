@@ -16,7 +16,7 @@ const NON_FATAL = false
 type Material struct {
 	Name   string
 	Map_Kd string
-	Kd     [3]float32
+	Kd     [3]float64
 }
 
 type MaterialLib struct {
@@ -103,9 +103,9 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 			return fmt.Errorf("parseLibLine: %d parsing error for Kd=%s [%s]: %v", lineCount, Kd, line, err), NON_FATAL
 		}
 
-		p.currMaterial.Kd[0] = float32(color[0])
-		p.currMaterial.Kd[1] = float32(color[1])
-		p.currMaterial.Kd[2] = float32(color[2])
+		p.currMaterial.Kd[0] = color[0]
+		p.currMaterial.Kd[1] = color[1]
+		p.currMaterial.Kd[2] = color[2]
 
 	case strings.HasPrefix(line, "map_Kd "):
 		map_Kd := line[7:]
@@ -145,7 +145,7 @@ type Group struct {
 
 type Obj struct {
 	Indices []int
-	Coord   []float32 // vertex data pos=(x,y,z) tex=(tx,ty) norm=(nx,ny,nz)
+	Coord   []float64 // vertex data pos=(x,y,z) tex=(tx,ty) norm=(nx,ny,nz)
 	Mtllib  string
 	Groups  []*Group
 
@@ -162,9 +162,9 @@ type Obj struct {
 type objParser struct {
 	lineBuf    []string
 	lineCount  int
-	vertCoord  []float32
-	textCoord  []float32
-	normCoord  []float32
+	vertCoord  []float64
+	textCoord  []float64
+	normCoord  []float64
 	currGroup  *Group
 	indexTable map[string]int
 	indexCount int
@@ -202,14 +202,14 @@ func (o *Obj) NumberOfElements() int {
 	return 4 * len(o.Coord) / o.StrideSize
 }
 
-func (o *Obj) VertexCoordinates(stride int) (float32, float32, float32) {
+func (o *Obj) VertexCoordinates(stride int) (float64, float64, float64) {
 	offset := o.StrideOffsetPosition / 4
 	floatsPerStride := o.StrideSize / 4
 	f := offset + stride*floatsPerStride
 	return o.Coord[f], o.Coord[f+1], o.Coord[f+2]
 }
 
-func (o *Obj) NormCoordinates(stride int) (float32, float32, float32) {
+func (o *Obj) NormCoordinates(stride int) (float64, float64, float64) {
     if !o.NormCoordFound {
         panic("NormCoordinates called on a mesh without explicit normals")
     }
@@ -220,7 +220,7 @@ func (o *Obj) NormCoordinates(stride int) (float32, float32, float32) {
 	return o.Coord[f], o.Coord[f+1], o.Coord[f+2]
 }
 
-func (o *Obj) TextCoordinates(stride int) (float32, float32) {
+func (o *Obj) TextCoordinates(stride int) (float64, float64) {
     if !o.TextCoordFound {
         panic("TextCoordinates called on a mesh without explicit UVs")
     }
@@ -233,7 +233,7 @@ func (o *Obj) TextCoordinates(stride int) (float32, float32) {
 
 //type lineParser func(p *objParser, o *Obj, rawLine string) (error, bool)
 
-func NewObjFromVertex(objName string, coord []float32, indices []int) (*Obj, error) {
+func NewObjFromVertex(objName string, coord []float64, indices []int) (*Obj, error) {
 	o := &Obj{}
 
 	group := o.newGroup("", "", 0, 0)
@@ -396,7 +396,7 @@ func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOpt
 				options.log(fmt.Sprintf("parseLine: line=%d non-zero third texture coordinate w=%f: [%v]", p.lineCount, w, line))
 			}
 		}
-		p.textCoord = append(p.textCoord, float32(t[0]), float32(t[1]))
+		p.textCoord = append(p.textCoord, t[0], t[1])
 
 	case strings.HasPrefix(line, "vn "):
 
@@ -405,7 +405,7 @@ func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOpt
 		if err != nil {
 			return fmt.Errorf("parseLine: line=%d bad vertex normal=[%s]: %v", p.lineCount, norm, err), NON_FATAL
 		}
-		p.normCoord = append(p.normCoord, float32(n[0]), float32(n[1]), float32(n[2]))
+		p.normCoord = append(p.normCoord, n[0], n[1], n[2])
 
 	case strings.HasPrefix(line, "v "):
 
@@ -416,10 +416,10 @@ func parseLineVertex(p *objParser, o *Obj, rawLine string, options *ObjParserOpt
 		coordLen := len(result)
 		switch coordLen {
 		case 3:
-			p.vertCoord = append(p.vertCoord, float32(result[0]), float32(result[1]), float32(result[2]))
+			p.vertCoord = append(p.vertCoord, result[0], result[1], result[2])
 		case 4:
 			w := result[3]
-			p.vertCoord = append(p.vertCoord, float32(result[0]/w), float32(result[1]/w), float32(result[2]/w))
+			p.vertCoord = append(p.vertCoord, result[0]/w, result[1]/w, result[2]/w)
 		default:
 			return fmt.Errorf("parseLine %v: [%v]: bad number of coords: %v", p.lineCount, line, coordLen), NON_FATAL
 		}
