@@ -17,6 +17,7 @@ type Material struct {
 	Name   string
 	Map_Kd string
 	Kd     [3]float64
+	D      float64
 }
 
 type MaterialLib struct {
@@ -87,6 +88,7 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		if mat, ok = lib.Lib[newmtl]; !ok {
 			// create new material
 			mat = &Material{Name: newmtl}
+			mat.D = 1.
 			lib.Lib[newmtl] = mat
 		}
 		p.currMaterial = mat
@@ -106,6 +108,19 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		p.currMaterial.Kd[0] = color[0]
 		p.currMaterial.Kd[1] = color[1]
 		p.currMaterial.Kd[2] = color[2]
+	case strings.HasPrefix(line, "d "):
+		D := line[2:]
+
+		if p.currMaterial == nil {
+			return fmt.Errorf("parseLibLine: %d undefined material for d=%s [%s]", lineCount, D, line), NON_FATAL
+		}
+
+		opacity, err := parseFloat(D)
+		if err != nil {
+			return fmt.Errorf("parseLibLine: %d parsing error for D=%s [%s]: %v", lineCount, D, line, err), NON_FATAL
+		}
+
+		p.currMaterial.D = opacity
 
 	case strings.HasPrefix(line, "map_Kd "):
 		map_Kd := line[7:]

@@ -57,3 +57,12 @@ func parseFloatVector3Space(text string) ([]float64, error) {
 func parseFloatVector3Comma(text string) ([]float64, error) {
 	return parseFloatVectorComma(text, 3)
 }
+
+func parseFloat(text string) (float64, error) {
+	arr, err := parseFloatVectorSpace(text, 1)
+	if err == nil {
+		return arr[0], nil
+	}
+
+	return 0., err
+}
