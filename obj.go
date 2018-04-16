@@ -14,10 +14,11 @@ const FATAL = true
 const NON_FATAL = false
 
 type Material struct {
-	Name   string
-	Map_Kd string
-	Kd     [3]float64
-	D      float64
+	Name	string
+	Map_Kd	string
+	Kd		[3]float64
+	D		float64
+	Refr	float64
 }
 
 type MaterialLib struct {
@@ -89,6 +90,7 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 			// create new material
 			mat = &Material{Name: newmtl}
 			mat.D = 1.
+			mat.Refr = 1.
 			lib.Lib[newmtl] = mat
 		}
 		p.currMaterial = mat
@@ -121,6 +123,20 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 		}
 
 		p.currMaterial.D = opacity
+
+	case strings.HasPrefix(line, "Refr "):
+		Refr := line[5:]
+
+		if p.currMaterial == nil {
+			return fmt.Errorf("parseLibLine: %d undefined material for Refr=%s [%s]", lineCount, Refr, line), NON_FATAL
+		}
+
+		refrac, err := parseFloat(Refr)
+		if err != nil {
+			return fmt.Errorf("parseLibLine: %d parsing error for Refr=%s [%s]: %v", lineCount, Refr, line, err), NON_FATAL
+		}
+
+		p.currMaterial.Refr = refrac
 
 	case strings.HasPrefix(line, "map_Kd "):
 		map_Kd := line[7:]
