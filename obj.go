@@ -139,7 +139,6 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 	case strings.HasPrefix(line, "Ke "):
 	case strings.HasPrefix(line, "Ks "):
 	case strings.HasPrefix(line, "Ni "):
-	case strings.HasPrefix(line, "d "):
 	case strings.HasPrefix(line, "illum "):
 	case strings.HasPrefix(line, "Tf "):
 	case strings.HasPrefix(line, "Tr "):
