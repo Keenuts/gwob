@@ -157,7 +157,7 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 
 		specular, err := parseFloatVector3Space(Ks)
 		if err != nil {
-			return fmt.Errorf("parseLibLine: %d parsing error for Ks=%s [%s]: %v", lineCount, specular, line, err), NON_FATAL
+			return fmt.Errorf("parseLibLine: %d parsing error for Ks=%s [%s]: %v", lineCount, Ks, line, err), NON_FATAL
 		}
 
 		for i := 0; i < 3; i++ {
