@@ -19,6 +19,8 @@ type Material struct {
 	Kd		[3]float64
 	D		float64
 	Refr	float64
+	Ks		[3]float64
+	Ns		float64
 }
 
 type MaterialLib struct {
@@ -147,13 +149,41 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 
 		p.currMaterial.Map_Kd = map_Kd
 
+	case strings.HasPrefix(line, "Ks "):
+		Ks := line[3:]
+
+		if p.currMaterial == nil {
+			return fmt.Errorf("parseLibLine: %d undefined material for Ks=%s [%s]", lineCount, Ks, line), NON_FATAL
+		}
+
+		specular, err := parseFloatVector3Space(Ks)
+		if err != nil {
+			return fmt.Errorf("parseLibLine: %d parsing error for Ks=%s [%s]: %v", lineCount, specular, line, err), NON_FATAL
+		}
+
+		for i := 0; i < 3; i++ {
+			p.currMaterial.Ks[i] = specular[i]
+		}
+
+	case strings.HasPrefix(line, "Ns "):
+		Ns := line[3:]
+
+		if p.currMaterial == nil {
+			return fmt.Errorf("parseLibLine: %d undefined material for Ns=%s [%s]", lineCount, Ns, line), NON_FATAL
+		}
+
+		specularFactor, err := parseFloat(Ns)
+		if err != nil {
+			return fmt.Errorf("parseLibLine: %d parsing error for Ns=%s [%s]: %v", lineCount, Ns, line, err), NON_FATAL
+		}
+
+		p.currMaterial.Ns = specularFactor
+
 	case strings.HasPrefix(line, "map_Ka "):
 	case strings.HasPrefix(line, "map_d "):
 	case strings.HasPrefix(line, "map_Bump "):
-	case strings.HasPrefix(line, "Ns "):
 	case strings.HasPrefix(line, "Ka "):
 	case strings.HasPrefix(line, "Ke "):
-	case strings.HasPrefix(line, "Ks "):
 	case strings.HasPrefix(line, "Ni "):
 	case strings.HasPrefix(line, "illum "):
 	case strings.HasPrefix(line, "Tf "):
