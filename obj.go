@@ -16,10 +16,9 @@ const NON_FATAL = false
 type Material struct {
 	Name	string
 	Map_Kd	string
-	Kd		[3]float64
+	Kd, Ks, Ke		[3]float64
 	D		float64
 	Refr	float64
-	Ks		[3]float64
 	Ns		float64
 }
 
@@ -179,11 +178,26 @@ func parseLibLine(p *libParser, lib MaterialLib, rawLine string, lineCount int) 
 
 		p.currMaterial.Ns = specularFactor
 
+	case strings.HasPrefix(line, "Ke "):
+		Ke := line[3:]
+
+		if p.currMaterial == nil {
+			return fmt.Errorf("parseLibLine: %d undefined material for Ke=%s [%s]", lineCount, Ke, line), NON_FATAL
+		}
+
+		emissive, err := parseFloatVector3Space(Ke)
+		if err != nil {
+			return fmt.Errorf("parseLibLine: %d parsing error for Ke=%s [%s]: %v", lineCount, Ke, line, err), NON_FATAL
+		}
+
+		for i := 0; i < 3; i++ {
+			p.currMaterial.Ke[i] = emissive[i]
+		}
+
 	case strings.HasPrefix(line, "map_Ka "):
 	case strings.HasPrefix(line, "map_d "):
 	case strings.HasPrefix(line, "map_Bump "):
 	case strings.HasPrefix(line, "Ka "):
-	case strings.HasPrefix(line, "Ke "):
 	case strings.HasPrefix(line, "Ni "):
 	case strings.HasPrefix(line, "illum "):
 	case strings.HasPrefix(line, "Tf "):
